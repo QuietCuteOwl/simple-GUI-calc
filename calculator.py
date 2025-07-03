@@ -3,9 +3,6 @@ from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QLineEdit,
                              QPushButton, QHBoxLayout, QVBoxLayout, QGridLayout)
 from PyQt5.Qt import Qt
 
-
-
-
 class Calculator(QWidget):
     def __init__(self):
         super().__init__()
@@ -72,7 +69,7 @@ class Calculator(QWidget):
 
         self.ans_output = QLineEdit(self)
         self.grid.addWidget(self.ans_output, 0, 0, 1, 3)
-        self.first_time = True
+
         self.ops_list = []
         self.f_index = -1
         self.ff_index = -1
@@ -86,127 +83,212 @@ class Calculator(QWidget):
     def initUI(self):
         pass
 
-    def collect(self, event):
+    def collect(self):
 
-
-        # if self.first_time:
-        #     print("Connected")
-        #     self.first_time = False
         sender = self.sender().text()
         print(f"{sender=} {self.ops_list=}")
+        self.navigator(sender)
         self.temp_s()
+
+    def navigator(self, sender):
         if sender == 'C':
             self.clear_func()
         elif sender == '⌫':
             self.backspace()
+        elif sender == '×' or '÷':
+            self.to_eval_symbols(sender)
+        elif sender == '=':
+            self.call_to_verify(sender)
         else:
-            self.verify(sender)
-
-    def verify(self, sender):
-        self.collect_count += 1
-        print(f'connect: {self.collect_count}')
-        self.temp_s()
-
-        if sender != '=':
-            if sender in self.arth_buttons:
-                if sender == '×':
-                    sender = '*'
-                elif sender == '÷':
-                    sender = '/'
-                else:
-                    pass
-            else:
-                pass
+            self.appender(sender)
+    def appender(self, sender):
+        if sender.isdigit():
             self.ops_list.append(sender)
-
-            self.f_index += 1
-            expression = ''.join(self.ops_list)
-            self.fn_list = [i for i in self.ops_list if i.isdigit()]
-            self.ff_list = [i for i in self.ops_list if not i.isdigit()]
-
-            if len(self.ff_list) >= 2:  #Checks if last two operators were same
-                ops_l = self.ops_list[-1]
-                ops_sl = self.ops_list[-2]
-                if ops_sl in self.ff_list and ops_l in self.ff_list:
-                    if ops_sl == '+':
-                        if ops_l == '+':
-                            self.ops_list.pop()
-                        elif ops_l == '-':
-                            self.ops_list.pop(-2)
-                        elif ops_l == '*':
-                            self.ops_list.pop(-2)
-                        elif ops_l == '/':
-                            self.ops_list.pop(-2)
-                        else:
-                            pass
-                    elif ops_sl == '-':
-                        if ops_l == '-':
-                            self.ops_list.pop()
-                        elif ops_l == '+':
-                            self.ops_list.pop(-2)
-                        elif ops_l == '*':
-                            self.ops_list.pop(-2)
-                        elif ops_l == '/':
-                            self.ops_list.pop(-2)
-                        else:
-                            pass
-                    elif ops_sl == '*':
-                        if ops_l == '*':
-                            pass
-                        elif ops_l == '+':
-                            self.ops_list.pop(-2)
-                        elif ops_l == '-':
-                            pass
-                        elif ops_l == '/':
-                            self.ops_list.pop(-2)
-                        else:
-                            pass
-                    elif ops_sl == '/':
-                        if ops_l == '/':
-                            self.ops_list.pop()
-                        elif ops_l == '+':
-                            self.ops_list.pop(-2)
-                        elif ops_l == '-':
-                            pass
-                        elif ops_l == '*':
-                            self.ops_list.pop(-2)
-                        else:
-                            pass
-                    elif ops_sl == '.':
-                        if ops_l in self.arth_buttons:
-                            self.ops_list.pop(-2)
-
-            else:
-                print(f"{self.f_index=}")
-                self.temp_s()
-
-            self.display(expression)
         else:
-            if len(self.ops_list) <= 1: #Checks if '=' was pressed without anything else
-                self.ans_output.setText("ERROR:Invalid Expression")
-                return
+            if sender == '.':
+                self.ops_list.append(sender)
+                self.handle_decimals()
             else:
+                if self.handle_operators():
+                    self.ops_list.append(sender)
+                    self.ff_list.append(sender)
+                else:
+                    self.ops_list.append(sender)
+                    self.ff_list.append(sender)
+                    success, var = self.fix_operator_combo()
+                    if success:
+                        return
+                    else:
+                        error_tuple = ({sender: f"{sender}"}, {success: f"{success}"}, self.ops_list)
+                        print(error_tuple)
+    def call_to_verify(self, sender):
+        self.pop_is_equal()
+
+        if self.is_too_short():
+            print("Too_Short")
+            return
+        elif self.is_invalid():
+            print("Is_Invalid")
+            return
+        else:
+            pass
+    def handle_operators(self):
+        if self.ops_list[-1].isdigit() or self.ops_list[-1] == '.':
+            return True
+        else:
+            return False
+    def handle_decimals(self):
+        pass
+    def fix_operator_combo(self):
+
+        if len(self.ff_list) >= 2:  # Checks if last two operators were same
+            if self.ops_list[-2] in self.ff_list and self.ops_list[-1] in self.ff_list:
                 ops_l = self.ops_list[-1]
                 ops_sl = self.ops_list[-2]
+            elif self.ops_list[-3] in self.ff_list and self.ops_list[-2] in self.ff_list:
+                ops_l = self.ops_list[-2]
+                ops_sl = self.ops_list[-3]
 
-                expression = ''.join(self.ops_list)
-                if ops_l == '=':                    #Pops the '='
-                    self.ops_list.pop()
-                if ops_l in self.ff_list:           #Checks if the operator was right
-                    self.ops_list.pop()             #after a number without any number ahead of it
-                    expression = ''.join(self.ops_list)
-                    self.clear_func()
+            if ops_sl in self.ff_list and ops_l in self.ff_list:
+                if ops_sl == '+':
+                    if ops_l == '+':
+                        self.ops_list.pop()
+                        self.ff_list.pop()
+                        return True, ops_l
+                    elif ops_l == '-':
+                        self.ops_list.pop(-2)
+                        self.ff_list.pop(-2)
+                        return True, ops_sl
+                    elif ops_l == '*':
+                        self.ops_list.pop(-2)
+                        self.ff_list.pop(-2)
+                        return True, ops_sl
+                    elif ops_l == '/':
+                        self.ops_list.pop(-2)
+                        self.ff_list.pop(-2)
+                        return True, ops_sl
+                    else:
+                        return False, ops_l
+                elif ops_sl == '-':
+                    if ops_l == '-':
+                        self.ops_list.pop()
+                        self.ff_list.pop()
+                        return True, ops_l
+                    elif ops_l == '+':
+                        self.ops_list.pop(-2)
+                        self.ff_list.pop(-2)
+                        return True, ops_sl
+                    elif ops_l == '*':
+                        self.ops_list.pop(-2)
+                        self.ff_list.pop(-2)
+                        return True, ops_sl
+                    elif ops_l == '/':
+                        self.ops_list.pop(-2)
+                        self.ff_list.pop(-2)
+                        return True, ops_sl
+                    else:
+                        return False, ops_l
+                elif ops_sl == '*':
+                    if ops_l == '*':
+                        if self.check_operator_combo(ops_sl, ops_l):
+                            return True, ops_sl
+                        else:
+                            self.collect_count += 1
+                            if self.collect_count <= 3:
+                                self.fix_operator_combo()
+                            else:
+                                return False, f"ERROR: {ops_sl=}, {ops_l=}, {self.ops_list[-3]=}"
+                    elif ops_l == '+':
+                        self.ops_list.pop(-2)
+                        self.ff_list.pop(-2)
+                        return True, ops_sl
+                    elif ops_l == '-':
+                        if self.check_operator_combo(ops_sl, ops_l):
+                            return True, ops_sl
+                        else:
+                            self.collect_count += 1
+                            if self.collect_count <= 3:
+                                self.fix_operator_combo()
+                            else:
+                                return False, f"ERROR: {ops_sl=}, {ops_l=}, {self.ops_list[-3]=}"
+                    elif ops_l == '/':
+                        self.ops_list.pop(-2)
+                        self.ff_list.pop(-2)
+                        return True, ops_sl
+                    else:
+                        return False, ops_l
+                elif ops_sl == '/':
+                    if ops_l == '/':
+                        self.ops_list.pop()
+                        self.ff_list.pop()
+                        return True, ops_sl
+                    elif ops_l == '+':
+                        self.ops_list.pop(-2)
+                        self.ff_list.pop(-2)
+                        return True, ops_sl
+                    elif ops_l == '-':
+                        if self.check_operator_combo(ops_sl, ops_l):
+                            return True, ops_sl
+                        else:
+                            self.collect_count += 1
+                            if self.collect_count <= 3:
+                                self.fix_operator_combo()
+                            else:
+                                return False, f"ERROR: {ops_sl=}, {ops_l=}, {self.ops_list[-3]=}"
+                    elif ops_l == '*':
+                        self.ops_list.pop(-2)
+                        self.ff_list.pop(-2)
+                        return True, ops_sl
+                    else:
+                        return False, ops_l
+        else:
+            print(f"{self.f_index=}")
 
-                    self.calculate(expression)
+    def check_operator_combo(self, ops_sl, ops_l):
+        if ops_sl == '*' or '/' and ops_l == '-':
+            return True
+        elif ops_sl == '-' and ops_l == '*' or '/':
+            return True
+        elif ops_sl == '*' and ops_l == '*':
+            return True
+        else:
+            return False
 
-                else:
-                    self.clear_func()
-                    self.calculate(expression)
-                    print(f"FINAL: {expression}")
-                    self.temp_s()
+    def to_eval_symbols(self, sender):
+        if self.collect_count == 10:
+            if sender == '×':
+                sender = '*'
+            elif sender == '÷':
+                sender = '/'
+            else:
+                print(f"GOING TO EVAL: {sender=}")
+            self.navigator(sender)
+            return
+        else:
+            print("Reached")
+    def from_eval_symbol(self):
+        pass
 
-        print(f"LEN: {len(self.ops_list)}")
-        print("________________")
+    def pop_is_equal(self):
+        if self.ops_list[-1] == '=':
+            self.ops_list.pop()
+            self.ff_list.pop()
+            return True
+        else:
+            return False
+
+    def is_too_short(self):
+        if len(self.ops_list) <= 2:  # Checks if '=' was pressed without anything else
+            return True
+        else:
+            return False
+
+    def is_invalid(self):
+        if self.ops_list[-1] in ['+', '-', '*', '/', '=']:
+            return True
+        else:
+            return False
+
     def calculate(self, expression):
 
         try:
@@ -216,7 +298,7 @@ class Calculator(QWidget):
             print(f"TYPE: {type(self.ans)}")
             self.temp_s()
             expression = self.ans
-            self.display(expression)
+
             self.ops_list = []
             for i in self.ans:
                 self.ops_list.append(i)
@@ -229,7 +311,7 @@ class Calculator(QWidget):
                         self.ff_index += 1
                 finally:
                     pass
-
+            self.display()
         except ZeroDivisionError:
             self.clear_func()
             self.ans_output.setText("Zero Division Error")
@@ -253,9 +335,10 @@ class Calculator(QWidget):
         else:
             self.ops_list.pop()
             expression = ''.join(self.ops_list)
-            self.display(expression)
+            self.display()
 
-    def display(self, expression):
+    def display(self):
+        expression = ''.join(self.ops_list)
         print(f"Display: {expression}")
         print(f"{self.ops_list}")
 
