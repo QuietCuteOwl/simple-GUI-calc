@@ -71,7 +71,6 @@ class Calculator(QWidget):
         self.grid.addWidget(self.ans_output, 0, 0, 1, 3)
 
         self.ops_list = []
-        self.f_index = -1
         self.ff_index = -1
         self.collect_count = 0
         self.ans = ''
@@ -86,7 +85,7 @@ class Calculator(QWidget):
     def collect(self):
 
         sender = self.sender().text()
-        print(f"{sender=} {self.ops_list=}")
+        print(f"{sender=}, AT COLLECT: {self.ops_list}")
         self.navigator(sender)
         self.temp_s()
 
@@ -95,19 +94,23 @@ class Calculator(QWidget):
             self.clear_func()
         elif sender == '⌫':
             self.backspace()
-        elif sender == '×' or '÷':
+        elif sender in ('×', '÷'):
             self.to_eval_symbols(sender)
         elif sender == '=':
             self.call_to_verify(sender)
         else:
             self.appender(sender)
+        print(f"AT NAVIGATOR: {self.ops_list}")
+        self.display()
     def appender(self, sender):
         if sender.isdigit():
             self.ops_list.append(sender)
         else:
             if sender == '.':
-                self.ops_list.append(sender)
-                self.handle_decimals()
+                if self.handle_decimals():
+                    self.ops_list.append(sender)
+                else:
+                    pass
             else:
                 if self.handle_operators():
                     self.ops_list.append(sender)
@@ -121,6 +124,7 @@ class Calculator(QWidget):
                     else:
                         error_tuple = ({sender: f"{sender}"}, {success: f"{success}"}, self.ops_list)
                         print(error_tuple)
+        print(f"AT APPENDER: {self.ops_list}")
     def call_to_verify(self, sender):
         self.pop_is_equal()
 
@@ -131,23 +135,43 @@ class Calculator(QWidget):
             print("Is_Invalid")
             return
         else:
-            pass
+            self.calculate()
+        print(f"AT VERIFY: {self.ops_list}")
     def handle_operators(self):
+        print(f"AT H OPS: {self.ops_list}")
         if self.ops_list[-1].isdigit() or self.ops_list[-1] == '.':
             return True
         else:
             return False
-    def handle_decimals(self):
-        pass
-    def fix_operator_combo(self):
 
+    def handle_decimals(self):
+        if len(self.ops_list) == 0:
+            return True
+
+        if self.ops_list[-1] == '.':
+            return False
+        elif self.ops_list[-1].isdigit():
+            index = len(self.ops_list) - 1
+            for i in range(index, -1, -1):
+                if self.ops_list[i] in ['+', '-', '*', '/', '.']:
+                    if self.ops_list[i] == '.':
+                        pass
+                    else:
+                        pass
+
+        else:
+            return True
+    def fix_operator_combo(self):
+        print(f"AT F OPS C: {self.ops_list}")
+        print(f"{self.ff_list=}")
         if len(self.ff_list) >= 2:  # Checks if last two operators were same
-            if self.ops_list[-2] in self.ff_list and self.ops_list[-1] in self.ff_list:
+            if self.ops_list[-3] in self.ff_list and self.ops_list[-2] in self.ff_list:
+                if self.ops_list[-1] in self.ff_list:
+                    self.ops_list.pop()
+                    return True, self.ops_list[-1]
+            elif self.ops_list[-2] in self.ff_list and self.ops_list[-1] in self.ff_list:
                 ops_l = self.ops_list[-1]
                 ops_sl = self.ops_list[-2]
-            elif self.ops_list[-3] in self.ff_list and self.ops_list[-2] in self.ff_list:
-                ops_l = self.ops_list[-2]
-                ops_sl = self.ops_list[-3]
 
             if ops_sl in self.ff_list and ops_l in self.ff_list:
                 if ops_sl == '+':
@@ -242,9 +266,10 @@ class Calculator(QWidget):
                     else:
                         return False, ops_l
         else:
-            print(f"{self.f_index=}")
+            print(f"{len(self.ff_list)}")
 
     def check_operator_combo(self, ops_sl, ops_l):
+        print(f"AT C OPS C: {self.ops_list}")
         if ops_sl == '*' or '/' and ops_l == '-':
             return True
         elif ops_sl == '-' and ops_l == '*' or '/':
@@ -255,21 +280,20 @@ class Calculator(QWidget):
             return False
 
     def to_eval_symbols(self, sender):
-        if self.collect_count == 10:
-            if sender == '×':
-                sender = '*'
-            elif sender == '÷':
-                sender = '/'
-            else:
-                print(f"GOING TO EVAL: {sender=}")
-            self.navigator(sender)
-            return
+        print(f"AT TES: {self.ops_list}")
+        if sender == '×':
+            sender = '*'
+        elif sender == '÷':
+            sender = '/'
         else:
-            print("Reached")
+            print(f"GOING TO EVAL: {sender=}")
+        self.navigator(sender)
+        return
     def from_eval_symbol(self):
         pass
 
     def pop_is_equal(self):
+        print(f"AT POP IE: {self.ops_list}")
         if self.ops_list[-1] == '=':
             self.ops_list.pop()
             self.ff_list.pop()
@@ -278,31 +302,31 @@ class Calculator(QWidget):
             return False
 
     def is_too_short(self):
+        print(f"AT IS SHORT: {self.ops_list}")
         if len(self.ops_list) <= 2:  # Checks if '=' was pressed without anything else
             return True
         else:
             return False
 
     def is_invalid(self):
-        if self.ops_list[-1] in ['+', '-', '*', '/', '=']:
+        print(f"AT IS INVALID: {self.ops_list}")
+        if self.ops_list[-1] in ['+', '-', '*', '/']:
             return True
         else:
             return False
 
-    def calculate(self, expression):
-
+    def calculate(self):
+        print(f"AT CALC: {self.ops_list}")
+        expression = ''.join(self.ops_list)
         try:
             self.ans = str(eval(expression))
-
             print(f"ANS: {self.ans}")
-            print(f"TYPE: {type(self.ans)}")
-            self.temp_s()
-            expression = self.ans
+            print(f"ANS TYPE: {type(self.ans)}")
 
             self.ops_list = []
             for i in self.ans:
                 self.ops_list.append(i)
-                self.f_index += 1
+
                 try:
                     if i.isdigit():
                         self.fn_list.append(i)
@@ -321,15 +345,16 @@ class Calculator(QWidget):
         # print(self.ops_list)
         # self.collect()
     def clear_func(self):
+        print(f"AT C FUNC: {self.ops_list}")
         self.ans_output.clear()
         self.ops_list.clear()
         self.ans = ''
         self.fn_list.clear()
         self.ff_list.clear()
-        self.f_index = -1
         self.ff_index = -1
 
     def backspace(self):
+        print(f"AT BACK S: {self.ops_list}")
         if len(self.ops_list) < 1:
             return
         else:
@@ -338,6 +363,7 @@ class Calculator(QWidget):
             self.display()
 
     def display(self):
+        print(f"AT DISPLAY: {self.ops_list}")
         expression = ''.join(self.ops_list)
         print(f"Display: {expression}")
         print(f"{self.ops_list}")
@@ -347,6 +373,7 @@ class Calculator(QWidget):
         self.__class__.tepm()
 
     def keyPressEvent(self, event):
+        print(f"AT KEYPRESS: {self.ops_list}")
         keys = [46, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 43, 45, 42, 47, 61, 16777219, 16777220, 16777221]
         sender = ''
         if event.key() in keys:
