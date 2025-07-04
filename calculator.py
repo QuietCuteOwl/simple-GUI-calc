@@ -90,6 +90,7 @@ class Calculator(QWidget):
         self.temp_s()
 
     def navigator(self, sender):
+
         if sender == 'C':
             self.clear_func()
         elif sender == '⌫':
@@ -145,25 +146,27 @@ class Calculator(QWidget):
             return False
 
     def handle_decimals(self):
-        if len(self.ops_list) == 0:
-            return True
+        index = len(self.ops_list) - 1
+        is_decimal = False
 
-        if self.ops_list[-1] == '.':
+        while index >= 0:
+            char = self.ops_list[index]
+            if char == '.':
+                is_decimal = True
+                break
+            elif char in ['+', '-', '*', '/']:
+                break
+            index -= 1
+
+        if is_decimal:
             return False
-        elif self.ops_list[-1].isdigit():
-            index = len(self.ops_list) - 1
-            for i in range(index, -1, -1):
-                if self.ops_list[i] in ['+', '-', '*', '/', '.']:
-                    if self.ops_list[i] == '.':
-                        pass
-                    else:
-                        pass
-
         else:
             return True
     def fix_operator_combo(self):
         print(f"AT F OPS C: {self.ops_list}")
         print(f"{self.ff_list=}")
+        ops_sl = ops_l = None
+
         if len(self.ff_list) >= 2:  # Checks if last two operators were same
             if self.ops_list[-3] in self.ff_list and self.ops_list[-2] in self.ff_list:
                 if self.ops_list[-1] in self.ff_list:
@@ -289,8 +292,6 @@ class Calculator(QWidget):
             print(f"GOING TO EVAL: {sender=}")
         self.navigator(sender)
         return
-    def from_eval_symbol(self):
-        pass
 
     def pop_is_equal(self):
         print(f"AT POP IE: {self.ops_list}")
@@ -364,7 +365,9 @@ class Calculator(QWidget):
 
     def display(self):
         print(f"AT DISPLAY: {self.ops_list}")
-        expression = ''.join(self.ops_list)
+        expression = ''.join('×' if x == '*' else
+                             '÷' if x == '/' else x
+                             for x in self.ops_list)
         print(f"Display: {expression}")
         print(f"{self.ops_list}")
 
