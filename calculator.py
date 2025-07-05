@@ -119,14 +119,9 @@ class Calculator(QWidget):
                 else:
                     self.ops_list.append(sender)
                     self.ff_list.append(sender)
-                    success, var = self.fix_operator_combo()
-                    if success:
-                        return
-                    else:
-                        error_tuple = ({sender: f"{sender}"}, {success: f"{success}"}, self.ops_list)
-                        print(error_tuple)
+                    self.fix_operator_combo()
         print(f"AT APPENDER: {self.ops_list}")
-    def call_to_verify(self, sender):
+    def call_to_verify(self):
         self.pop_is_equal()
 
         if self.is_too_short():
@@ -165,122 +160,42 @@ class Calculator(QWidget):
     def fix_operator_combo(self):
         print(f"AT F OPS C: {self.ops_list}")
         print(f"{self.ff_list=}")
-        ops_sl = ops_l = None
 
-        if len(self.ff_list) >= 2:  # Checks if last two operators were same
-            if self.ops_list[-3] in self.ff_list and self.ops_list[-2] in self.ff_list:
-                if self.ops_list[-1] in self.ff_list:
+        changed = True
+        looped = 0
+        while changed:
+            looped += 1
+            print(f"{looped=}")
+            changed = False
+
+            if len(self.ff_list) >= 3:  # Checks if last two operators were same
+                last_three = self.ops_list[-3:]
+
+                if all(op in self.ff_list for op in last_three):
                     self.ops_list.pop()
-                    return True, self.ops_list[-1]
-            elif self.ops_list[-2] in self.ff_list and self.ops_list[-1] in self.ff_list:
-                ops_l = self.ops_list[-1]
-                ops_sl = self.ops_list[-2]
+                    self.ff_list.pop()
+                    changed = True
+                    continue
 
-            if ops_sl in self.ff_list and ops_l in self.ff_list:
-                if ops_sl == '+':
-                    if ops_l == '+':
-                        self.ops_list.pop()
-                        self.ff_list.pop()
-                        return True, ops_l
-                    elif ops_l == '-':
-                        self.ops_list.pop(-2)
-                        self.ff_list.pop(-2)
-                        return True, ops_sl
-                    elif ops_l == '*':
-                        self.ops_list.pop(-2)
-                        self.ff_list.pop(-2)
-                        return True, ops_sl
-                    elif ops_l == '/':
-                        self.ops_list.pop(-2)
-                        self.ff_list.pop(-2)
-                        return True, ops_sl
-                    else:
-                        return False, ops_l
-                elif ops_sl == '-':
-                    if ops_l == '-':
-                        self.ops_list.pop()
-                        self.ff_list.pop()
-                        return True, ops_l
-                    elif ops_l == '+':
-                        self.ops_list.pop(-2)
-                        self.ff_list.pop(-2)
-                        return True, ops_sl
-                    elif ops_l == '*':
-                        self.ops_list.pop(-2)
-                        self.ff_list.pop(-2)
-                        return True, ops_sl
-                    elif ops_l == '/':
-                        self.ops_list.pop(-2)
-                        self.ff_list.pop(-2)
-                        return True, ops_sl
-                    else:
-                        return False, ops_l
-                elif ops_sl == '*':
-                    if ops_l == '*':
-                        if self.check_operator_combo(ops_sl, ops_l):
-                            return True, ops_sl
-                        else:
-                            self.collect_count += 1
-                            if self.collect_count <= 3:
-                                self.fix_operator_combo()
-                            else:
-                                return False, f"ERROR: {ops_sl=}, {ops_l=}, {self.ops_list[-3]=}"
-                    elif ops_l == '+':
-                        self.ops_list.pop(-2)
-                        self.ff_list.pop(-2)
-                        return True, ops_sl
-                    elif ops_l == '-':
-                        if self.check_operator_combo(ops_sl, ops_l):
-                            return True, ops_sl
-                        else:
-                            self.collect_count += 1
-                            if self.collect_count <= 3:
-                                self.fix_operator_combo()
-                            else:
-                                return False, f"ERROR: {ops_sl=}, {ops_l=}, {self.ops_list[-3]=}"
-                    elif ops_l == '/':
-                        self.ops_list.pop(-2)
-                        self.ff_list.pop(-2)
-                        return True, ops_sl
-                    else:
-                        return False, ops_l
-                elif ops_sl == '/':
-                    if ops_l == '/':
-                        self.ops_list.pop()
-                        self.ff_list.pop()
-                        return True, ops_sl
-                    elif ops_l == '+':
-                        self.ops_list.pop(-2)
-                        self.ff_list.pop(-2)
-                        return True, ops_sl
-                    elif ops_l == '-':
-                        if self.check_operator_combo(ops_sl, ops_l):
-                            return True, ops_sl
-                        else:
-                            self.collect_count += 1
-                            if self.collect_count <= 3:
-                                self.fix_operator_combo()
-                            else:
-                                return False, f"ERROR: {ops_sl=}, {ops_l=}, {self.ops_list[-3]=}"
-                    elif ops_l == '*':
-                        self.ops_list.pop(-2)
-                        self.ff_list.pop(-2)
-                        return True, ops_sl
-                    else:
-                        return False, ops_l
-        else:
-            print(f"{len(self.ff_list)}")
+            if len(self.ff_list) >= 2:
+                last_two = ''.join(self.ops_list[-2:])
 
-    def check_operator_combo(self, ops_sl, ops_l):
-        print(f"AT C OPS C: {self.ops_list}")
-        if ops_sl == '*' or '/' and ops_l == '-':
-            return True
-        elif ops_sl == '-' and ops_l == '*' or '/':
-            return True
-        elif ops_sl == '*' and ops_l == '*':
-            return True
-        else:
-            return False
+                if self.ops_list[-2] in self.ff_list and self.ops_list[-1] in self.ff_list:
+
+                    if last_two in ['++', '--', '//']:
+                        self.ops_list.pop()
+                        self.ff_list.pop()
+                        changed = True
+                        continue
+
+                    if last_two not in ['*-', '/-', '**']:
+                        self.ops_list.pop(-2)
+                        self.ff_list.pop(-2)
+                        changed = True
+                        continue
+
+            else:
+                print(f"{len(self.ff_list)}")
 
     def to_eval_symbols(self, sender):
         print(f"AT TES: {self.ops_list}")
@@ -377,50 +292,48 @@ class Calculator(QWidget):
 
     def keyPressEvent(self, event):
         print(f"AT KEYPRESS: {self.ops_list}")
-        keys = [46, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 43, 45, 42, 47, 61, 16777219, 16777220, 16777221]
         sender = ''
-        if event.key() in keys:
-            if event.key() == 46:
-                sender = '.'
-            elif event.key() == 48:
-                sender = '0'
-            elif event.key() == 49:
-                sender = '1'
-            elif event.key() == 50:
-                sender = '2'
-            elif event.key() == 51:
-                sender = '3'
-            elif event.key() == 52:
-                sender = '4'
-            elif event.key() == 53:
-                sender = '5'
-            elif event.key() == 54:
-                sender = '6'
-            elif event.key() == 55:
-                sender = '7'
-            elif event.key() == 56:
-                sender = '8'
-            elif event.key() == 57:
-                sender = '9'
-            elif event.key() == 43:
-                sender = '+'
-            elif event.key() == 45:
-                sender = '-'
-            elif event.key() == 42:
-                sender = '*'
-            elif event.key() == 47:
-                sender = '/'
-            elif event.key() == 61:
-                sender = '='
-            elif event.key() in [16777220, 16777221]:  # Return or Enter
-                sender = '='
-            elif event.key() == 16777219:
-                self.backspace()
+        if event.key() == Qt.Key_Period:
+            sender = '.'
+        elif event.key() == Qt.Key_0:
+            sender = '0'
+        elif event.key() == Qt.Key_1:
+            sender = '1'
+        elif event.key() == Qt.Key_2:
+            sender = '2'
+        elif event.key() == Qt.Key_3:
+            sender = '3'
+        elif event.key() == Qt.Key_4:
+            sender = '4'
+        elif event.key() == Qt.Key_5:
+            sender = '5'
+        elif event.key() == Qt.Key_6:
+            sender = '6'
+        elif event.key() == Qt.Key_7:
+            sender = '7'
+        elif event.key() == Qt.Key_8:
+            sender = '8'
+        elif event.key() == Qt.Key_9:
+            sender = '9'
+        elif event.key() == Qt.Key_Plus:
+            sender = '+'
+        elif event.key() == Qt.Key_Minus:
+            sender = '-'
+        elif event.key() == Qt.Key_Asterisk:
+            sender = '*'
+        elif event.key() == Qt.Key_Slash:
+            sender = '/'
+        elif event.key() == Qt.Key_Equal:
+            sender = '='
+        elif event.key() == Qt.Key_C:
+            sender = 'C'
+        elif event.key() in (Qt.Key_Enter, Qt.Key_Return):  # Return or Enter
+            sender = '='
+        elif event.key() == Qt.Key_Backspace:
+            self.backspace()
 
-
-
-            if sender != '':
-                self.verify(sender)
+        if sender != '':
+            self.navigator(sender)
 
     @staticmethod
     def tepm():
