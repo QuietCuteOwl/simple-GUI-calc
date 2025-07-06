@@ -98,7 +98,7 @@ class Calculator(QWidget):
         elif sender in ('×', '÷'):
             self.to_eval_symbols(sender)
         elif sender == '=':
-            self.call_to_verify(sender)
+            self.call_to_verify()
         else:
             self.appender(sender)
         print(f"AT NAVIGATOR: {self.ops_list}")
@@ -119,7 +119,7 @@ class Calculator(QWidget):
                 else:
                     self.ops_list.append(sender)
                     self.ff_list.append(sender)
-                    self.fix_operator_combo()
+                    self.sanitize_ops()
         print(f"AT APPENDER: {self.ops_list}")
     def call_to_verify(self):
         self.pop_is_equal()
@@ -157,8 +157,8 @@ class Calculator(QWidget):
             return False
         else:
             return True
-    def fix_operator_combo(self):
-        print(f"AT F OPS C: {self.ops_list}")
+    def sanitize_ops(self):
+        print(f"AT SOPS: {self.ops_list}")
         print(f"{self.ff_list=}")
 
         changed = True
@@ -168,34 +168,53 @@ class Calculator(QWidget):
             print(f"{looped=}")
             changed = False
 
-            if len(self.ff_list) >= 3:  # Checks if last two operators were same
-                last_three = self.ops_list[-3:]
+            if len(self.ops_list) < 2:
+                break
 
-                if all(op in self.ff_list for op in last_three):
-                    self.ops_list.pop()
-                    self.ff_list.pop()
-                    changed = True
-                    continue
+            last_two = self.ops_list[-2:]
+            last_three = self.ops_list[-3:] if len(self.ops_list) >= 3 else []
 
-            if len(self.ff_list) >= 2:
-                last_two = ''.join(self.ops_list[-2:])
+            print(f"LAST TWO: {last_two}")
+            print(f"LAST THREE:{last_three}")
+            print("2/6")
 
-                if self.ops_list[-2] in self.ff_list and self.ops_list[-1] in self.ff_list:
+            if last_three and all(op in self.ff_list for op in last_three):
+                self.remove_invalid_combo_last()
+                print('3/6')
+                changed = True
+                continue
 
-                    if last_two in ['++', '--', '//']:
-                        self.ops_list.pop()
-                        self.ff_list.pop()
-                        changed = True
-                        continue
+            print('4/6')
 
-                    if last_two not in ['*-', '/-', '**']:
-                        self.ops_list.pop(-2)
-                        self.ff_list.pop(-2)
-                        changed = True
-                        continue
+            if all(op in self.ff_list for op in last_two) and not self.is_valid_combo(last_two[0], last_two[1]):
+                self.remove_invalid_combo()
+                print('5/6')
+                changed = True
+                continue
 
-            else:
-                print(f"{len(self.ff_list)}")
+        print("6/6")
+
+    def is_valid_combo(self, a, b):
+
+        valid_combo = ('*-', '/-', '**')
+        return a + b in valid_combo
+
+    def remove_invalid_combo(self, index=-2):
+        try:
+            print(f"{self.ops_list[index]}{self.ff_list[index]} is popped")
+            self.ops_list.pop(index)
+            self.ff_list.pop(index)
+        except IndexError:
+            pass
+
+    def remove_invalid_combo_last(self):
+
+        if self.ops_list:
+            print(f'{self.ops_list[-1]} is popped')
+            self.ops_list.pop()
+        if self.ff_list:
+            print(f'{self.ff_list[-1]} is popped')
+            self.ff_list.pop()
 
     def to_eval_symbols(self, sender):
         print(f"AT TES: {self.ops_list}")
