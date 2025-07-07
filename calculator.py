@@ -7,53 +7,56 @@ class Calculator(QWidget):
     def __init__(self):
         super().__init__()
         self.grid = QGridLayout()
+        self.grid.setSpacing(3)
         self.buttons = []
         self.arth_buttons = ['+', '-', '×', '÷', '=']
         for num in range(10):
             button = QPushButton(str(num), self)
+            button.setFixedSize(85, 35)
             button.clicked.connect(self.collect)
             self.buttons.append(button)
 
             if num == 1:
-                self.grid.addWidget(button, 1, 0)
-            elif num == 2:
-                self.grid.addWidget(button, 1, 1)
-            elif num == 3:
-                self.grid.addWidget(button, 1, 2)
-            elif num == 4:
                 self.grid.addWidget(button, 2, 0)
-            elif num == 5:
+            elif num == 2:
                 self.grid.addWidget(button, 2, 1)
-            elif num == 6:
+            elif num == 3:
                 self.grid.addWidget(button, 2, 2)
-            elif num == 7:
+            elif num == 4:
                 self.grid.addWidget(button, 3, 0)
-            elif num == 8:
+            elif num == 5:
                 self.grid.addWidget(button, 3, 1)
-            elif num == 9:
+            elif num == 6:
                 self.grid.addWidget(button, 3, 2)
-            elif num == 0:
+            elif num == 7:
                 self.grid.addWidget(button, 4, 0)
+            elif num == 8:
+                self.grid.addWidget(button, 4, 1)
+            elif num == 9:
+                self.grid.addWidget(button, 4, 2)
+            elif num == 0:
+                self.grid.addWidget(button, 5, 0)
 
         for sign in self.arth_buttons:
             if sign != "=":
                 arth_button = QPushButton(sign, self)
+                arth_button.setFixedSize(85, 35)
                 arth_button.clicked.connect(self.collect)
 
 
                 if sign == '+':
-                    self.grid.addWidget(arth_button, 1, 3)
-                elif sign == '-':
                     self.grid.addWidget(arth_button, 2, 3)
-                elif sign == '×':
+                elif sign == '-':
                     self.grid.addWidget(arth_button, 3, 3)
-                elif sign == '÷':
+                elif sign == '×':
                     self.grid.addWidget(arth_button, 4, 3)
+                elif sign == '÷':
+                    self.grid.addWidget(arth_button, 5, 3)
             else:
                 arth_button = QPushButton(sign, self)
+                arth_button.setFixedSize(85, 35)
                 arth_button.clicked.connect(self.collect)
-                self.grid.addWidget(arth_button, 4, 2)
-
+                self.grid.addWidget(arth_button, 5, 2)
 
         self.clear_button = QPushButton("C", self)
         self.clear_button.clicked.connect(self.collect)
@@ -61,14 +64,27 @@ class Calculator(QWidget):
         self.back_p.clicked.connect(self.collect)
         self.decimal = QPushButton(".", self)
         self.decimal.clicked.connect(self.collect)
+        self.parentheses_open = QPushButton("(", self)
+        self.parentheses_open.clicked.connect(self.collect)
+        self.parentheses_close = QPushButton(")", self)
+        self.parentheses_close.clicked.connect(self.collect)
 
         self.grid.addWidget(self.clear_button, 1, 4)
-        self.grid.addWidget(self.back_p, 2, 4)
-        self.grid.addWidget(self.decimal, 4, 1)
+        self.grid.addWidget(self.back_p, 1, 3)
+        self.grid.addWidget(self.decimal, 5, 1)
+        self.grid.addWidget(self.parentheses_open, 1, 1)
+        self.grid.addWidget(self.parentheses_close, 1, 2)
 
+        self.clear_button.setFixedSize(85, 35)
+        self.back_p.setFixedSize(85, 35)
+        self.decimal.setFixedSize(85, 35)
+        self.parentheses_open.setFixedSize(85, 35)
+        self.parentheses_close.setFixedSize(85, 35)
 
-        self.ans_output = QLineEdit(self)
-        self.grid.addWidget(self.ans_output, 0, 0, 1, 3)
+        self.input_and_display = QLineEdit(self)
+        self.input_and_display.setMinimumSize(300, 50)
+        self.input_and_display.setMaximumSize(700, 100)
+        self.grid.addWidget(self.input_and_display, 0, 0, 1, 5)
 
         self.ops_list = []
         self.ff_index = -1
@@ -80,7 +96,18 @@ class Calculator(QWidget):
         self.setLayout(self.grid)
         self.initUI()
     def initUI(self):
-        pass
+
+        self.input_and_display.setObjectName("input_and_display")
+        self.setStyleSheet("""
+            QLineEdit{
+                font-size: 50px;
+                font-family: calibri;         
+            }
+            QPushButton{
+                border-radius: 14;
+                border: 1px solid grey;
+            }
+        """)
 
     def collect(self):
 
@@ -112,8 +139,10 @@ class Calculator(QWidget):
                     self.ops_list.append(sender)
                 else:
                     pass
+            elif sender in ('(', ')'):
+                self.manage_parentheses(sender)
             else:
-                if self.handle_operators():
+                if self.handle_operators(sender):
                     self.ops_list.append(sender)
                     self.ff_list.append(sender)
                 else:
@@ -121,6 +150,13 @@ class Calculator(QWidget):
                     self.ff_list.append(sender)
                     self.sanitize_ops()
         print(f"AT APPENDER: {self.ops_list}")
+    def manage_parentheses(self, sender):
+        if sender == '(':
+            if self.ops_list[-1].isdigit():
+                self.ops_list.append('*')
+                self.ops_list.append(sender)
+        else:
+            self.ops_list.append(sender)
     def call_to_verify(self):
         self.pop_is_equal()
 
@@ -133,8 +169,13 @@ class Calculator(QWidget):
         else:
             self.calculate()
         print(f"AT VERIFY: {self.ops_list}")
-    def handle_operators(self):
+    def handle_operators(self, sender):
         print(f"AT H OPS: {self.ops_list}")
+        if len(self.ops_list) < 1:
+            if sender in ('-', '.'):
+                return True
+            else:
+                return False
         if self.ops_list[-1].isdigit() or self.ops_list[-1] == '.':
             return True
         else:
@@ -186,11 +227,14 @@ class Calculator(QWidget):
 
             print('4/6')
 
-            if all(op in self.ff_list for op in last_two) and not self.is_valid_combo(last_two[0], last_two[1]):
+            if len(last_two) == 2 and all(op in self.ff_list for op in last_two) and not self.is_valid_combo(last_two[0], last_two[1]):
                 self.remove_invalid_combo()
                 print('5/6')
                 changed = True
                 continue
+
+        if len(self.ops_list) == 1:
+            self.remove_invalid_combo_last()
 
         print("6/6")
 
@@ -273,7 +317,7 @@ class Calculator(QWidget):
             self.display()
         except ZeroDivisionError:
             self.clear_func()
-            self.ans_output.setText("Zero Division Error")
+            self.input_and_display.setText("Zero Division Error")
 
 
         # print(self.ops_list)
@@ -281,7 +325,7 @@ class Calculator(QWidget):
         # self.collect()
     def clear_func(self):
         print(f"AT C FUNC: {self.ops_list}")
-        self.ans_output.clear()
+        self.input_and_display.clear()
         self.ops_list.clear()
         self.ans = ''
         self.fn_list.clear()
@@ -305,8 +349,8 @@ class Calculator(QWidget):
         print(f"Display: {expression}")
         print(f"{self.ops_list}")
 
-        self.ans_output.setText("")
-        self.ans_output.setText(expression)
+        self.input_and_display.setText("")
+        self.input_and_display.setText(expression)
         self.__class__.tepm()
 
     def keyPressEvent(self, event):
