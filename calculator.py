@@ -132,6 +132,8 @@ class Calculator(QWidget):
         self.display()
     def appender(self, sender):
         if sender.isdigit():
+            if len(self.ops_list) > 0  and self.ops_list[-1] == ')':
+                self.ops_list.append('*')
             self.ops_list.append(sender)
         else:
             if sender == '.':
@@ -152,11 +154,39 @@ class Calculator(QWidget):
         print(f"AT APPENDER: {self.ops_list}")
     def manage_parentheses(self, sender):
         if sender == '(':
+            if len(self.ops_list) < 1:
+                self.ops_list.append(sender)
             if self.ops_list[-1].isdigit():
                 self.ops_list.append('*')
                 self.ops_list.append(sender)
         else:
-            self.ops_list.append(sender)
+            parentheses_found = True
+            index = len(self.ops_list) - 1
+            loop_count = 0
+            while index >= 0:
+                loop_count += 1
+                if self.ops_list[index] != '(':
+                    print("1/x")
+                    if self.ops_list[index] == ')':
+                        parentheses_found = False
+                        print("2/x")
+                        break
+                    parentheses_found = False
+                    print(f"{self.ops_list[index]=}")
+                    print("3/x")
+                else:
+                    if loop_count == 1:
+                        parentheses_found = False
+                    else:
+                        parentheses_found = True
+                    break
+                print("4/x")
+                index -= 1
+            print("5/x")
+            if parentheses_found:
+                self.ops_list.append(sender)
+            else:
+                pass
     def call_to_verify(self):
         self.pop_is_equal()
 
