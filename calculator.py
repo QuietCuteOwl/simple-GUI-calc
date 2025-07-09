@@ -156,37 +156,29 @@ class Calculator(QWidget):
         if sender == '(':
             if len(self.ops_list) < 1:
                 self.ops_list.append(sender)
-            if self.ops_list[-1].isdigit():
+                return
+            elif self.ops_list[-1].isdigit():
                 self.ops_list.append('*')
                 self.ops_list.append(sender)
-        else:
-            parentheses_found = True
-            index = len(self.ops_list) - 1
-            loop_count = 0
-            while index >= 0:
-                loop_count += 1
-                if self.ops_list[index] != '(':
-                    print("1/x")
-                    if self.ops_list[index] == ')':
-                        parentheses_found = False
-                        print("2/x")
-                        break
-                    parentheses_found = False
-                    print(f"{self.ops_list[index]=}")
-                    print("3/x")
-                else:
-                    if loop_count == 1:
-                        parentheses_found = False
-                    else:
-                        parentheses_found = True
-                    break
-                print("4/x")
-                index -= 1
-            print("5/x")
-            if parentheses_found:
+                return
+            elif self.ops_list[-1] in ('+', '-', '*', '/'):
                 self.ops_list.append(sender)
-            else:
+                return
+            elif self.ops_list[-1] == '.':
                 pass
+                return
+            else:
+                print(f"{self.ops_list[-1]=}")
+                return
+        elif sender == ')':
+            open_count = self.ops_list.count('(')
+            close_count = self.ops_list.count(')')
+
+            if open_count > close_count and self.ops_list and (self.ops_list[-1].isdigit() or self.ops_list[-1] == ')'):
+                self.ops_list.append(sender)
+                return
+            else:
+                return
     def call_to_verify(self):
         self.pop_is_equal()
 
@@ -206,8 +198,16 @@ class Calculator(QWidget):
                 return True
             else:
                 return False
-        if self.ops_list[-1].isdigit() or self.ops_list[-1] == '.':
+        elif self.ops_list[-1].isdigit() or self.ops_list[-1] == '.':
             return True
+        elif self.ops_list[-1] in ('(', ')'):
+            if self.ops_list[-1] == '(':
+                if sender == '-':
+                    return True
+                else:
+                    return False
+            else:
+                return True
         else:
             return False
 
