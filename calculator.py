@@ -148,9 +148,13 @@ class Calculator(QWidget):
                     self.ops_list.append(sender)
                     self.ff_list.append(sender)
                 else:
-                    self.ops_list.append(sender)
-                    self.ff_list.append(sender)
-                    self.sanitize_ops()
+                    if len(self.ops_list) >= 2 and self.ops_list[-2] == '(' or len(self.ops_list) >= 1 and self.ops_list[-1] == '(':
+                        print("6/6")
+                        pass
+                    else:
+                        self.ops_list.append(sender)
+                        self.ff_list.append(sender)
+                        self.sanitize_ops()
         print(f"AT APPENDER: {self.ops_list}")
     def manage_parentheses(self, sender):
         if sender == '(':
@@ -161,6 +165,9 @@ class Calculator(QWidget):
                 self.ops_list.append('*')
                 self.ops_list.append(sender)
                 return
+            elif self.ops_list[-1] == ')':
+                self.ops_list.append('*')
+                self.ops_list.append(sender)
             elif self.ops_list[-1] in ('+', '-', '*', '/'):
                 self.ops_list.append(sender)
                 return
@@ -194,20 +201,20 @@ class Calculator(QWidget):
     def handle_operators(self, sender):
         print(f"AT H OPS: {self.ops_list}")
         if len(self.ops_list) < 1:
+
             if sender in ('-', '.'):
                 return True
             else:
                 return False
         elif self.ops_list[-1].isdigit() or self.ops_list[-1] == '.':
             return True
-        elif self.ops_list[-1] in ('(', ')'):
-            if self.ops_list[-1] == '(':
-                if sender == '-':
-                    return True
-                else:
-                    return False
-            else:
+        elif self.ops_list[-1] == '(':
+            if sender == '-':
+                print("Reached here")
                 return True
+            else:
+                print("Didnt reach here")
+                return False
         else:
             return False
 
@@ -220,7 +227,7 @@ class Calculator(QWidget):
             if char == '.':
                 is_decimal = True
                 break
-            elif char in ['+', '-', '*', '/']:
+            elif char in ['+', '-', '*', '/', ')']:
                 break
             index -= 1
 
@@ -263,14 +270,11 @@ class Calculator(QWidget):
                 changed = True
                 continue
 
-        if len(self.ops_list) == 1:
-            self.remove_invalid_combo_last()
-
         print("6/6")
 
     def is_valid_combo(self, a, b):
 
-        valid_combo = ('*-', '/-', '**')
+        valid_combo = ('*-', '/-', '**', '(-', ')+', ')-', ')/', ')*')
         return a + b in valid_combo
 
     def remove_invalid_combo(self, index=-2):
@@ -303,7 +307,9 @@ class Calculator(QWidget):
 
     def pop_is_equal(self):
         print(f"AT POP IE: {self.ops_list}")
-        if self.ops_list[-1] == '=':
+        if len(self.ops_list) < 1:
+            return False
+        elif self.ops_list[-1] == '=':
             self.ops_list.pop()
             self.ff_list.pop()
             return True
@@ -326,6 +332,9 @@ class Calculator(QWidget):
 
     def calculate(self):
         print(f"AT CALC: {self.ops_list}")
+        if self.ops_list.count('(') != self.ops_list.count(')'):
+            self.input_and_display.setText("Unbalanced parentheses")
+            return
         expression = ''.join(self.ops_list)
         try:
             self.ans = str(eval(expression))
@@ -348,6 +357,8 @@ class Calculator(QWidget):
         except ZeroDivisionError:
             self.clear_func()
             self.input_and_display.setText("Zero Division Error")
+        except (SyntaxError, TypeError, IndexError) as e:
+            print(repr(e))
 
 
         # print(self.ops_list)
