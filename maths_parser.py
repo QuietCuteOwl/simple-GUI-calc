@@ -1,0 +1,202 @@
+import re
+from decimal import Decimal
+from typing import Union
+
+
+
+def is_number(x):
+    try:
+        float(x)
+        return True
+    except ValueError:
+        return False
+
+class Tokenizer:
+    def __init__(self, expr):
+        self.expr = expr
+        self.caret = 0
+
+    NUMBER = 'NUMBER'
+    ADDITION = '+'
+    SUBTRACTION = '-'
+    MULTIPLICATION = '*'
+    DIVISION = '/'
+    EXPONENTIATION = '^'
+    PARENTHESES_LEFT = '('
+    PARENTHESES_RIGHT = ')'
+
+    TokenSpecification = [
+        (re.compile(r'^\s+'), None),
+        (re.compile(r'^(?:\d+(?:\.\d*)?|(?:\.\d+))'), NUMBER),
+        (re.compile(r'^\+'), ADDITION),
+        (re.compile(r'^\-'), SUBTRACTION),
+        (re.compile(r'^\*'), MULTIPLICATION),
+        (re.compile(r'^\/'), DIVISION),
+        (re.compile(r'^\^'), EXPONENTIATION),
+        (re.compile(r'^\('), PARENTHESES_LEFT),
+        (re.compile(r'^\)'), PARENTHESES_RIGHT),
+    ]
+
+    def match_token(self, regex, expr_slice):
+        matched = regex.match(expr_slice)
+        if matched is None:
+            return None
+
+        self.caret += len(matched.group(0))
+        return matched.group(0)
+    def has_more_token(self):
+        return self.caret < len(self.expr)
+    def get_next_token(self):
+        if not self.has_more_token():
+            return None
+
+        expr_slice = self.expr[self.caret:]
+
+        for regex, token_type in self.TokenSpecification:
+            token_value = self.match_token(regex, expr_slice)
+
+            if token_value is None:
+                continue
+
+            if token_type is None:
+                return self.get_next_token()
+
+            return {
+                'type': token_type,
+                'value': token_value,
+            }
+        raise Exception(f'Unexpected Token: {expr_slice[0]}')
+
+class ToRPN:
+    def __init__(self, tokenized_expr):
+        self.tokenized_expr = tokenized_expr
+
+    operators = {
+        '+': {'prec': 1, 'assoc': 'left'},
+        '-': {'prec': 1, 'assoc': 'left'},
+        '*': {'prec': 2, 'assoc': 'left'},
+        '/': {'prec': 2, 'assoc': 'left'},
+        '^': {'prec': 3, 'assoc': 'right'},
+    }
+
+    def to_rpn(self):
+        stack = []
+        output = []
+        op_symbol = list(self.operators.keys())
+        for token in self.tokenized_expr:
+            if is_number(token):
+                output.append(token)
+                continue
+            elif token in op_symbol:
+                while (
+                        stack and
+                        stack[-1] in self.operators and
+                        stack != '('
+                ):
+                    o2 = stack[-1]
+                    p1 = self.operators[token]['prec']
+                    a1 = self.operators[token]['assoc']
+                    p2 = self.operators[o2]['prec']
+
+                    if (p2 > p1) or ((p2 == p1) and (a1 == 'left')):
+                        output.append(stack.pop())
+                    else:
+                        break
+                stack.append(token)
+
+            elif token == '(':
+                stack.append(token)
+            elif token == ')':
+                while stack:
+                    top = stack.pop()
+                    if top == '(':
+                        break
+                    output.append(top)
+                else:
+                    raise ValueError('Mismatched Parentheses')
+
+        while stack:
+            output.append(stack.pop())
+
+        return output
+
+class Calculate:
+    def __init__(self, expr_rpn):
+        self.expr_rpn = expr_rpn
+    def calculate(self) -> str|None:
+
+        output = []
+
+        for token in self.expr_rpn:
+            if is_number(token):
+                output.append(Decimal(token))
+                continue
+            else:
+                right = Decimal(output.pop())
+                left = Decimal(output.pop())
+                if token == '+':
+                    output.append(left + right)
+                    continue
+                elif token == '-':
+                    output.append(left - right)
+                    continue
+                elif token == '*':
+                    output.append(left * right)
+                    continue
+                elif token == '/':
+                    if right == 0:
+                        raise ZeroDivisionError(f'Division by Zero: {left} / {right}')
+                    output.append(left / right)
+                    continue
+                elif token == '^':
+                    output.append(left ** right)
+                    continue
+                else:
+                    raise Exception(f'Invalid Token: {token}')
+        answer: str|None = str(output[0]) if output else None
+        return answer
+
+class CalculatorCore:
+    def __init__(self, expr):
+        self.expr = expr
+
+    def run(self, stage: int) -> Union[None, list[str]]:
+        if not (1 <= stage <= 3):
+            raise Exception(f'Invalid argument for stage: {stage};'
+                            f'Must be between 1-3')
+        else:
+            tokenized = self.tokenize()
+            match stage:
+                case 1:
+                    return tokenized
+                case 2:
+                    return self.rpn_converter(tokenized)
+                case 3:
+                    return self.evaluate(self.rpn_converter(tokenized))
+                case _:
+                    return None
+
+    def tokenize(self):
+        tokenizer = Tokenizer(self.expr)
+        tokens = []
+
+        while tokenizer.has_more_token():
+            token = tokenizer.get_next_token()
+            if token is not None:
+                tokens.append(token['value'])
+
+        return tokens
+
+    def rpn_converter(self, tokenized_expr):
+        return ToRPN(tokenized_expr).to_rpn()
+
+    def evaluate(self, rpn_expr):
+        return Calculate(rpn_expr).calculate()
+
+def main():
+    print('Running file directly')
+    casl = CalculatorCore('1 - (8/0)')
+    print(casl.run(stage=3))
+
+if __name__ == '__main__':
+    main()
