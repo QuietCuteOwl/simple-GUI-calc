@@ -44,8 +44,10 @@ class Tokenizer:
 
         self.caret += len(matched.group(0))
         return matched.group(0)
+
     def has_more_token(self):
         return self.caret < len(self.expr)
+
     def get_next_token(self):
         if not self.has_more_token():
             return None
@@ -67,6 +69,7 @@ class Tokenizer:
             }
         raise Exception(f'Unexpected Token: {expr_slice[0]}')
 
+
 class ToRPN:
     def __init__(self, tokenized_expr):
         self.tokenized_expr = tokenized_expr
@@ -77,6 +80,7 @@ class ToRPN:
         '*': {'prec': 2, 'assoc': 'left'},
         '/': {'prec': 2, 'assoc': 'left'},
         '^': {'prec': 3, 'assoc': 'right'},
+        'neg': {'prec': 3, 'assoc': 'right'},
     }
 
     def to_rpn(self):
@@ -132,6 +136,10 @@ class Calculate:
                 output.append(Decimal(token))
                 continue
             else:
+                if token == 'neg':
+                    value = Decimal(output.pop())
+                    output.append(-value)
+                    continue
                 right = Decimal(output.pop())
                 left = Decimal(output.pop())
                 if token == '+':
@@ -176,14 +184,24 @@ class CalculatorCore:
                 case _:
                     return None
 
-    def tokenize(self):
-        tokenizer = Tokenizer(self.expr)
-        tokens = []
+    def tokenize(self) -> list[str]:
+        tokenizer: Tokenizer = Tokenizer(self.expr)
+        tokens: list[str] = []
+        previous_token: None|str = None
+        help_unary: bool = False
 
         while tokenizer.has_more_token():
-            token = tokenizer.get_next_token()
+            token: dict[str, str] = tokenizer.get_next_token()
+            if help_unary:
+                tokens.append('neg')
+                help_unary = False
             if token is not None:
+                if (token['value'] == '-') and ((previous_token is None) or (previous_token == '(') or (previous_token in ToRPN.operators)):
+                    previous_token = token['value']
+                    help_unary = True
+                    continue
                 tokens.append(token['value'])
+                previous_token = token['value']
 
         return tokens
 
@@ -195,7 +213,7 @@ class CalculatorCore:
 
 def main():
     print('Running file directly')
-    casl = CalculatorCore('1 - (8/0)')
+    casl = CalculatorCore('3 + 4 * 2 / (1 - 5)^2^3')
     print(casl.run(stage=3))
 
 if __name__ == '__main__':

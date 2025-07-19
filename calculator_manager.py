@@ -25,13 +25,7 @@ class CentralManager:
                 self.clear_last()
                 self.widget.update_display()
             else:
-                calculator_core: CalculatorCore = CalculatorCore(self.widget.get_input())
-                result: str|None = calculator_core.run(stage=3) # I need to figure out why mypy is giving me this warning and how result could be None
-                if result is None:                              # I also need to move all of this out of MyPyPrograms and put in a separate directory
-                    return                                      # Then initialize git, pls do it first tomorrow
-                self.widget.set_input(val=result, join=False)
-                self.widget.update_display()
-                print(result)
+                self.evaluate()
     def run(self) -> None:
         self.widget.run()
 
@@ -41,6 +35,16 @@ class CentralManager:
     def clear_last(self):
         self.widget.set_input(val=self.widget.input_str[:-1], join=False)
         print(f'{self.widget.input_str=}')
+
+    def evaluate(self) -> None:
+        calculator_core: CalculatorCore = CalculatorCore(self.widget.get_input())
+        result: str | None = calculator_core.run(stage=3)
+        if result is None:
+            return
+        self.widget.set_input(val=result, join=False)
+        self.widget.update_display()
+        print(result)
+        return
 
 def main() -> None:
     manager: CentralManager = CentralManager()

@@ -1,5 +1,4 @@
 import tkinter as tk
-
 from typing import Callable, Optional
 
 class MainWidget:
