@@ -63,6 +63,25 @@ class MainWidget:
             self.input_str += val
             self.last_clicked = val[-1] if val else ''
             return
+
+    def it_exists(self, index: int) -> bool:
+        if (index > 0 and index > len(self.input_str) - 1) or (index < 0 and index < len(self.input_str) * -1):
+            return False
+        else:
+            return True
+
+    def modify_input(self, pop: int = -1) -> str:
+        input_list: list[str] = []
+        for i in self.input_str:
+            input_list.append(i)
+        self.input_str = ''
+        if (pop > 0 and pop > len(input_list) - 1) or (pop < 0 and pop < len(input_list) * -1):
+            raise IndexError('Pop value out of range')
+        else:
+            input_list.pop(pop)
+            self.input_str = ''.join(input_list)
+            return self.input_str
+
     def on_click(self, val: str) -> None:
         self.last_clicked = val
         if val not in ('AC','C', '='):
