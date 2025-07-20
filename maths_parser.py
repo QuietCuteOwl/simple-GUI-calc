@@ -1,15 +1,8 @@
 import re
 from decimal import Decimal
 from typing import Union
+from utilities import GeneralMethods
 
-
-
-def is_number(x):
-    try:
-        float(x)
-        return True
-    except ValueError:
-        return False
 
 class Tokenizer:
     def __init__(self, expr):
@@ -88,7 +81,7 @@ class ToRPN:
         output = []
         op_symbol = list(self.operators.keys())
         for token in self.tokenized_expr:
-            if is_number(token):
+            if GeneralMethods.is_number(x=token):
                 output.append(token)
                 continue
             elif token in op_symbol:
@@ -132,7 +125,7 @@ class Calculate:
         output = []
 
         for token in self.expr_rpn:
-            if is_number(token):
+            if GeneralMethods.is_number(x=token):
                 output.append(Decimal(token))
                 continue
             else:

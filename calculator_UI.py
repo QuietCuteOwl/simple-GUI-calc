@@ -64,12 +64,6 @@ class MainWidget:
             self.last_clicked = val[-1] if val else ''
             return
 
-    def it_exists(self, index: int) -> bool:
-        if (index > 0 and index > len(self.input_str) - 1) or (index < 0 and index < len(self.input_str) * -1):
-            return False
-        else:
-            return True
-
     def modify_input(self, pop: int = -1) -> str:
         input_list: list[str] = []
         for i in self.input_str:

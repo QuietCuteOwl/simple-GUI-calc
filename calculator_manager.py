@@ -1,6 +1,7 @@
 from calculator_UI import MainWidget
 from maths_parser import *
 from input_validation import *
+from utilities import *
 
 class CentralManager:
     def __init__(self) -> None:
@@ -13,7 +14,7 @@ class CentralManager:
         if val not in ('AC', 'C', '='):
             self.widget.change_display(change_value= val, join=True)
             if val in ('+', '-', '*', '/'):
-                second_last: str|None = self.widget.input_str[-2] if self.widget.it_exists(-2) else None
+                second_last: str|None = self.widget.input_str[-2] if GeneralMethods.it_exists(var=self.widget.input_str, index=-2) else None
                 if second_last in ('+', '-', '*', '/'):
                     self.manage_operator_conflict(second_last)
                     return None
