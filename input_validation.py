@@ -2,23 +2,30 @@ from maths_parser import CalculatorCore
 from utilities import GeneralMethods
 
 class RTEval:
-    def __init__(self, expr: str):
-        self.expr = expr
-        self.calculatorcore: CalculatorCore = CalculatorCore(self.expr)
+    def __init__(self):
         self.buffer = ''
-    def tokenize(self):
-        result = self.calculatorcore.run(1)
-        print(result)
-    def process_buffer_tokens(self):
-        self.buffer += self.expr[0] if self.expr else None
-        if GeneralMethods.is_number(self.buffer):
-            return
+        self.tokens = []
+        self.previous = ''
+    def feed(self, char):
+        if GeneralMethods.is_number(char) or char == '.':
+            self.buffer += char
+        elif char in '+-*/^':
+            self.flash_buffer()
+            self.tokens.append(char)
+        elif char in '()':
+            self.flash_buffer()
+            self.tokens.append(char)
         else:
-            if self.buffer in ('+', '-', '*', '/'):
-                ...
+            pass
+        self.previous = char
+    def flash_buffer(self):
+        if self.buffer:
+            self.tokens.append(self.buffer)
+            self.buffer = ''
 
-    def run(self):
-        self.tokenize()
+def main() -> None:
+    rte: RTEval = RTEval()
+    rte.feed(char=5)
 
-rteval = RTEval('+2')
-rteval.run()
+if __name__ == '__main__':
+    main()

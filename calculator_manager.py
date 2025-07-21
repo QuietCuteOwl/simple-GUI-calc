@@ -1,6 +1,6 @@
 from calculator_UI import MainWidget
-from maths_parser import *
-from input_validation import *
+from maths_parser import CalculatorCore
+from input_validation import RTEval
 from utilities import *
 
 class CentralManager:
@@ -12,14 +12,9 @@ class CentralManager:
 
     def handle_button_press(self, val: str, current_input: str) -> None:
         if val not in ('AC', 'C', '='):
+            rte: RTEval = RTEval(val)
+            rte.process_buffer_tokens()
             self.widget.change_display(change_value= val, join=True)
-            if val in ('+', '-', '*', '/'):
-                second_last: str|None = self.widget.input_str[-2] if GeneralMethods.it_exists(var=self.widget.input_str, index=-2) else None
-                if second_last in ('+', '-', '*', '/'):
-                    self.manage_operator_conflict(second_last)
-                    return None
-                else:
-                    pass
             return None
         else:
             self.handle_special_buttons()
@@ -46,9 +41,6 @@ class CentralManager:
     def clear_last(self):
         self.widget.set_input(val=self.widget.input_str[:-1], join=False)
         print(f'{self.widget.input_str=}')
-
-    def manage_operator_conflict(self, second_last: str) -> None:
-        ...
 
     def evaluate(self) -> None:
         calculator_core: CalculatorCore = CalculatorCore(self.widget.get_input())
