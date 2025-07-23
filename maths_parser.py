@@ -120,7 +120,7 @@ class ToRPN:
 class Calculate:
     def __init__(self, expr_rpn):
         self.expr_rpn = expr_rpn
-    def calculate(self, preview=False) -> str|float|None:
+    def calculate(self) -> str|float|None:
 
         output = []
 
@@ -137,10 +137,7 @@ class Calculate:
                     right = Decimal(output.pop())
                     left = Decimal(output.pop())
                 except IndexError:
-                    if preview:
-                        return '...'
-                    else:
-                        raise IndexError
+                    raise IndexError
                 if token == '+':
                     output.append(left + right)
                     continue
@@ -153,10 +150,7 @@ class Calculate:
                 elif token == '/':
                     if right == 0:
                         if left == 0:
-                            if preview:
-                                return '...'
-                            else:
-                                raise ZeroDivisionError('Division by zero')
+                            raise ZeroDivisionError('Division by zero')
                         else:
                             possible_infinity = float('inf')
                             return possible_infinity
@@ -166,10 +160,7 @@ class Calculate:
                     output.append(left ** right)
                     continue
                 else:
-                    if preview:
-                        return '...'
-                    else:
-                        raise Exception(f'Invalid Token: {token}')
+                    raise Exception(f'Invalid Token: {token}')
         answer: str|None = str(output[0]) if output else None
         return answer
 
@@ -177,7 +168,7 @@ class CalculatorCore:
     def __init__(self, expr):
         self.expr = expr
 
-    def run(self, stage: int, preview=False) -> Union[None, list[str]]:
+    def run(self, stage: int) -> Union[None, list[str]]:
         if not (1 <= stage <= 3):
             raise Exception(f'Invalid argument for stage: {stage};'
                             f'Must be between 1-3')
@@ -189,7 +180,7 @@ class CalculatorCore:
                 case 2:
                     return self.rpn_converter(tokenized)
                 case 3:
-                    return self.evaluate(self.rpn_converter(tokenized), preview=preview)
+                    return self.evaluate(self.rpn_converter(tokenized))
                 case _:
                     return None
 
@@ -217,13 +208,13 @@ class CalculatorCore:
     def rpn_converter(self, tokenized_expr):
         return ToRPN(tokenized_expr).to_rpn()
 
-    def evaluate(self, rpn_expr, preview):
-        return Calculate(rpn_expr).calculate(preview)
+    def evaluate(self, rpn_expr):
+        return Calculate(rpn_expr).calculate()
 
 def main():
     print('Running file directly')
-    casl = CalculatorCore('3/2')
-    print(casl.run(stage=3, preview=True))
+    casl = CalculatorCore('9(')
+    print(casl.run(stage=3))
 
 if __name__ == '__main__':
     main()

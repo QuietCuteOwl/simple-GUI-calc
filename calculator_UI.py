@@ -8,6 +8,7 @@ class MainWidget:
         self.input_str: str = ''
         self.root.title('First time using Tkinter')
         self.entry: tk.Entry = tk.Entry(self.root, width=20, borderwidth=2, font=("Calibri", 18), justify="right")
+        self.test_entry: tk.Entry = tk.Entry(self.root, width=5, borderwidth=1, font=("Calibri", 18), justify="right")
         self._button_callback: Optional[Callable[[str, str], None]] = None
 
         window_width: int = 600
@@ -22,6 +23,7 @@ class MainWidget:
         self.root.geometry(f'{window_width}x{window_height}+{x}+{y}')
 
         self.entry.grid(row=0, column=0, columnspan=4, pady=10, padx=10)
+        self.test_entry.grid(row=0, column=5, pady=10, padx=10)
 
         buttons: list[tuple[str, int, int]|tuple[str, int, int, int]] = [
             ('AC', 1, 0), ('C', 1, 1), ('(', 1, 2), (')', 1, 3),
@@ -65,15 +67,15 @@ class MainWidget:
             return
 
     def modify_input(self, pop: int = -1) -> str:
-        input_list: list[str] = []
-        for i in self.input_str:
-            input_list.append(i)
-        self.input_str = ''
-        if (pop > 0 and pop > len(input_list) - 1) or (pop < 0 and pop < len(input_list) * -1):
-            raise IndexError('Pop value out of range')
+        if not self.input_str:
+            return self.input_str
         else:
-            input_list.pop(pop)
-            self.input_str = ''.join(input_list)
+            try:
+                input_list: list[str] = list(self.input_str)
+                input_list.pop(pop)
+                self.input_str = ''.join(input_list)
+            except IndexError:
+                raise IndexError
             return self.input_str
 
     def on_click(self, val: str) -> None:
@@ -84,16 +86,24 @@ class MainWidget:
             self._button_callback(val, self.input_str)
         return None
 
-    def change_display(self, change_value: str, join: bool =False) -> None:
-        if not join:
-            self.entry.delete(0, tk.END)
-            self.entry.insert(0, change_value)
+    def change_display(self, change_value: str, join: bool =False, test: bool = False) -> None:
+        if not test:
+            if not join:
+                self.entry.delete(0, tk.END)
+                self.entry.insert(0, change_value)
+            else:
+                self.entry.insert(tk.END, change_value)
         else:
-            self.entry.insert(tk.END, change_value)
+            self.test_entry.delete(0, tk.END)
+            self.test_entry.insert(0, change_value)
 
-    def update_display(self):
-        self.entry.delete(0, tk.END)
-        self.entry.insert(0, self.input_str)
+    def update_display(self, test=False):
+        if not test:
+            self.entry.delete(0, tk.END)
+            self.entry.insert(0, self.input_str)
+        else:
+            self.test_entry.delete(0, tk.END)
+            self.test_entry.insert(0, self.input_str)
 
     def run(self) -> None:
         self.root.mainloop()
