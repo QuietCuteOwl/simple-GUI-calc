@@ -97,13 +97,9 @@ class MainWidget:
             self.test_entry.delete(0, tk.END)
             self.test_entry.insert(0, change_value)
 
-    def update_display(self, test=False):
-        if not test:
-            self.entry.delete(0, tk.END)
-            self.entry.insert(0, self.input_str)
-        else:
-            self.test_entry.delete(0, tk.END)
-            self.test_entry.insert(0, self.input_str)
+    def update_display(self):
+        self.entry.delete(0, tk.END)
+        self.entry.insert(0, self.input_str)
 
     def run(self) -> None:
         self.root.mainloop()

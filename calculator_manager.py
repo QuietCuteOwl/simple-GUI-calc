@@ -17,28 +17,24 @@ class CentralManager:
         else:
             self.widget.change_display(change_value=val, join=True)
             self.eval_real_time(val=val)
-
-    def eval_real_time(self, val) -> None:
-        self.rte.feed(val)
-
+    def calculate_preview(self) -> None:
         expr = ''.join(self.rte.get_current_expr())
-        calc = CalculatorCore(expr)
-        print(f'{expr = }')
+        calc: CalculatorCore  =CalculatorCore(expr)
 
         try:
-            print(expr)
             result = calc.run(stage=3)
-            self.widget.change_display(change_value=result, join=False, test=True)
+            self.widget.change_display(change_value=result, join=False, test=True) # Changing the preview display
         except ZeroDivisionError:
-            print('ZeroDivisionError')
+            self.widget.change_display(change_value='/0Err', join=False, test=True)
         except IndexError:
-            print('IndexError')
+            self.widget.change_display(change_value='...', join=False, test=True)
         except ValueError:
-            print('ValueError')
+            self.widget.change_display(change_value='"()"...', join=False, test=True)
         except Exception as e:
-            print('Here')
             print(repr(e))
+    def eval_real_time(self, val) -> None:
 
+        self.calculate_preview()
         return None
 
     def handle_special_buttons(self) -> None:
@@ -49,12 +45,12 @@ class CentralManager:
             if last_clicked == 'AC':
                 self.clear_all()
                 self.widget.update_display()
-                self.widget.update_display(test=True)
+                self.calculate_preview()
                 return
             elif last_clicked == 'C':
                 self.clear_last()
                 self.widget.update_display()
-                self.widget.update_display(test=True)
+                self.calculate_preview()
                 return
             else:
                 self.evaluate()

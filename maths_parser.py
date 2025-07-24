@@ -213,8 +213,8 @@ class CalculatorCore:
 
 def main():
     print('Running file directly')
-    casl = CalculatorCore('9(')
-    print(casl.run(stage=3))
+    casl = CalculatorCore('3.1.4')
+    print(casl.run(stage=1))
 
 if __name__ == '__main__':
     main()
