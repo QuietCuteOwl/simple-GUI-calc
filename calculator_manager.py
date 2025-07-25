@@ -8,17 +8,27 @@ class CentralManager:
         self.widget: MainWidget = MainWidget()
         self.rte: RTEval = RTEval()
         self.widget.set_button_callback(self.handle_button_press)
-
-    invalid_operator_pair = ('*/', '/*', '+*', '+/', '-*', '-/')
+        self.input_str = ''
+        self.expr = ''
 
     def handle_button_press(self, val: str, current_input: str) -> None:
-        if val in ('AC', 'C', '='):
-            self.handle_special_buttons()
+        print(f'{self.expr=}')
+        if val == '=':
+            self.evaluate()
+            return
+        if not self.rte.validate(char=val, expr=self.expr):
+            print('Here')
         else:
+            self.expr += val
             self.widget.change_display(change_value=val, join=True)
-            self.eval_real_time(val=val)
+            print(self.expr)
+            self.input_str = self.expr
+        if not self.widget.get_input() == self.expr:
+            print('Out of sync')
+
+
     def calculate_preview(self) -> None:
-        expr = ''.join(self.rte.get_current_expr())
+        expr = '7+3'
         calc: CalculatorCore  =CalculatorCore(expr)
 
         try:
@@ -58,12 +68,10 @@ class CentralManager:
         self.widget.run()
 
     def clear_all(self):
-        self.widget.set_input(val='', join=False)
-        self.rte.clear_all()
+        self.request_set_input(value='', join=False)
         return None
     def clear_last(self):
-        self.widget.set_input(val=self.widget.input_str[:-1], join=False)
-        self.rte.clear_last()
+        self.request_set_input(value=self.widget.input_str[:-1], join=False)
         print(f'{self.widget.input_str=}')
 
     def evaluate(self) -> None:
@@ -71,10 +79,12 @@ class CentralManager:
         result: str | None = calculator_core.run(stage=3)
         if result is None:
             return
-        self.widget.set_input(val=result, join=False)
+        self.request_set_input(value=result, join=False)
         self.widget.update_display()
         print(result)
         return
+    def request_set_input(self, value: str, join=False) -> None:
+        self.widget.set_input(val=value, join=join)
 
 def main() -> None:
     manager: CentralManager = CentralManager()
