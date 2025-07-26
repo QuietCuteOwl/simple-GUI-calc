@@ -1,14 +1,15 @@
-from maths_parser import CalculatorCore
-from utilities import GeneralMethods as gm
+
+from utilities import GeneralMethods as gm, ManagerMethods as mm, ManagerMethods
 import re
 
-# To-Do Tomorrow: Make a method in manager to change/edit expr str from another file then implement automatic addition of '*'
-# when an opening parentheses is after a number and a closing is after a number.Define new or update existing methods for
-# all_clear and clear_last then clean the manager file if necessary.Make a method for calculating when user presses '='.
+# To-Do Tomorrow: Figure out how to modify str and display from this file without importing calculator_manager directly
+# because that causes a infinite loop of importing I guess.I need to figure out how to do this using utilities.py.
+
 
 class RTEval:
     def __init__(self):
         self.operators = '+-*/^'
+        self.mm: mm = ManagerMethods()
     def validate(self, char, expr):
         if char in self.operators + ')':
             if len(expr) == 0:
@@ -32,13 +33,13 @@ class RTEval:
                         return False
         elif char == '(':
             if expr and (gm.is_number(expr[-1]) or expr[-1] == ')'):
-                expr += '*'
+                self.mm.add_expr('*')
                 return True
             else:
                 return True
         elif gm.is_number(char):
             if expr and expr[-1] == ')':
-                expr += '*'
+                self.mm.add_expr('*')
                 return True
             else:
                 return True
@@ -46,13 +47,14 @@ class RTEval:
             if not self.is_valid_dot(expr=expr):
                 return False
             else:
-                print('Hey')
                 return True
         elif char in ('AC', 'C'):
             if char == 'AC':
-                ... # clear all
+                self.all_clear()
+                return True
             else:
-                ... # clear last
+                self.clear_last()
+                return True
         elif char == '=':
             if not self.is_last_value_valid(expr=expr):
                 return False
@@ -60,6 +62,7 @@ class RTEval:
                 if not self.is_balanced_parentheses(expr=expr):
                     return False
                 else:
+                    self.evaluate()
                     return True
         else:
             raise Exception(f'Unexpected char: {char}')
@@ -132,6 +135,17 @@ class RTEval:
         else:
             return True
 
+    def all_clear(self):
+        self.mm.all_clear()
+        self.mm.widget.update_display(self.mm.expr)
+
+    def clear_last(self):
+        self.mm.pop_input()
+        self.mm.widget.update_display(self.mm.expr)
+
+    def evaluate(self):
+        self.mm.evaluate(stage=3)
+        self.mm.request_update_display(self.mm.expr)
 
 def main() -> None:
 

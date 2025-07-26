@@ -165,15 +165,12 @@ class Calculate:
         return answer
 
 class CalculatorCore:
-    def __init__(self, expr):
-        self.expr = expr
 
-    def run(self, stage: int) -> Union[None, list[str]]:
+    def run(self, expr: str, stage: int) -> Union[None, list[str]]:
         if not (1 <= stage <= 3):
-            raise Exception(f'Invalid argument for stage: {stage};'
-                            f'Must be between 1-3')
+            return None
         else:
-            tokenized = self.tokenize()
+            tokenized = self.tokenize(expr)
             match stage:
                 case 1:
                     return tokenized
@@ -184,8 +181,8 @@ class CalculatorCore:
                 case _:
                     return None
 
-    def tokenize(self) -> list[str]:
-        tokenizer: Tokenizer = Tokenizer(self.expr)
+    def tokenize(self, expr) -> list[str]:
+        tokenizer: Tokenizer = Tokenizer(expr=expr)
         tokens: list[str] = []
         previous_token: None|str = None
         help_unary: bool = False
@@ -196,7 +193,8 @@ class CalculatorCore:
                 tokens.append('neg')
                 help_unary = False
             if token is not None:
-                if (token['value'] == '-') and ((previous_token is None) or (previous_token == '(') or (previous_token in ToRPN.operators)):
+                if ((token['value'] == '-') and
+                    ((previous_token is None) or (previous_token == '(') or (previous_token in ToRPN.operators))):
                     previous_token = token['value']
                     help_unary = True
                     continue
@@ -213,8 +211,8 @@ class CalculatorCore:
 
 def main():
     print('Running file directly')
-    casl = CalculatorCore('3.1.4')
-    print(casl.run(stage=1))
+    casl = CalculatorCore()
+    print(casl.run(expr='3.1.4', stage=1))
 
 if __name__ == '__main__':
     main()

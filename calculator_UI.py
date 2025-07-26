@@ -53,31 +53,6 @@ class MainWidget:
     def set_button_callback(self, callback: Callable[[str, str], None]) -> None:
         self._button_callback = callback
 
-    def get_input(self) -> str:
-        return self.input_str
-
-    def set_input(self, val: str, join: bool = False) -> None:
-        if not join:
-            self.input_str = val
-            self.last_clicked = val[-1] if val else ''
-            return
-        else:
-            self.input_str += val
-            self.last_clicked = val[-1] if val else ''
-            return
-
-    def modify_input(self, pop: int = -1) -> str:
-        if not self.input_str:
-            return self.input_str
-        else:
-            try:
-                input_list: list[str] = list(self.input_str)
-                input_list.pop(pop)
-                self.input_str = ''.join(input_list)
-            except IndexError:
-                raise IndexError
-            return self.input_str
-
     def on_click(self, val: str) -> None:
         self.last_clicked = val
         if val not in ('AC','C', '='):
@@ -97,9 +72,9 @@ class MainWidget:
             self.test_entry.delete(0, tk.END)
             self.test_entry.insert(0, change_value)
 
-    def update_display(self):
+    def update_display(self, value: str):
         self.entry.delete(0, tk.END)
-        self.entry.insert(0, self.input_str)
+        self.entry.insert(0, value)
 
     def run(self) -> None:
         self.root.mainloop()
