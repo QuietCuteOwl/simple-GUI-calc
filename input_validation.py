@@ -1,15 +1,11 @@
-
-from utilities import GeneralMethods as gm, ManagerMethods as mm, ManagerMethods
+from utilities import GeneralMethods as gm
 import re
-
-# To-Do Tomorrow: Figure out how to modify str and display from this file without importing calculator_manager directly
-# because that causes a infinite loop of importing I guess.I need to figure out how to do this using utilities.py.
 
 
 class RTEval:
-    def __init__(self):
+    def __init__(self, manager_methods):
+        self.mm = manager_methods
         self.operators = '+-*/^'
-        self.mm: mm = ManagerMethods()
     def validate(self, char, expr):
         if char in self.operators + ')':
             if len(expr) == 0:
@@ -72,7 +68,6 @@ class RTEval:
         if match:
             return False
         else:
-            print('Hi')
             return True
 
     def is_balanced_parentheses(self, expr):
@@ -137,15 +132,20 @@ class RTEval:
 
     def all_clear(self):
         self.mm.all_clear()
-        self.mm.widget.update_display(self.mm.expr)
+        self.mm.request_update_display(self.mm.get_expr())
 
     def clear_last(self):
         self.mm.pop_input()
-        self.mm.widget.update_display(self.mm.expr)
+        self.mm.request_update_display(self.mm.get_expr())
 
     def evaluate(self):
-        self.mm.evaluate(stage=3)
-        self.mm.request_update_display(self.mm.expr)
+        result = self.mm.evaluate(stage=3)
+        if result is not None:
+            self.mm.all_clear()
+            self.mm.add_expr(value=result)
+            self.mm.request_update_display(self.mm.get_expr())
+        else:
+            pass
 
 def main() -> None:
 

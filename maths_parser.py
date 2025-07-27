@@ -1,8 +1,9 @@
 import re
-from decimal import Decimal
+from decimal import Decimal, getcontext, ROUND_HALF_UP
 from typing import Union
 from utilities import GeneralMethods
 
+getcontext().prec = 25
 
 class Tokenizer:
     def __init__(self, expr):
@@ -157,12 +158,23 @@ class Calculate:
                     output.append(left / right)
                     continue
                 elif token == '^':
-                    output.append(left ** right)
+                    try:
+                        output.append(left. __pow__(right))
+                    except Exception:
+                        output.append(Decimal(float(left) ** float(right)))
                     continue
                 else:
                     raise Exception(f'Invalid Token: {token}')
         answer: str|None = str(output[0]) if output else None
-        return answer
+        if answer is not None:
+            dec_answer = Decimal(answer)
+
+            if dec_answer == dec_answer.to_integral():
+                return str(dec_answer.to_integral())
+            else:
+                return f'{dec_answer:.15f}'.rstrip('0').rstrip('.')
+        else:
+            return answer
 
 class CalculatorCore:
 
@@ -212,7 +224,7 @@ class CalculatorCore:
 def main():
     print('Running file directly')
     casl = CalculatorCore()
-    print(casl.run(expr='3.1.4', stage=1))
+    print(casl.run(expr='9*(8-3)^2-9/-2.002/.2-3*-.2', stage=3))
 
 if __name__ == '__main__':
     main()

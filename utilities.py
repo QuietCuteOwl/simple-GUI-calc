@@ -1,11 +1,15 @@
+import decimal
+from decimal import Decimal
 
 class GeneralMethods:
     @staticmethod
     def is_number(x):
         try:
-            float(x)
+            Decimal(x)
             return True
         except ValueError:
+            return False
+        except decimal.InvalidOperation:
             return False
     @staticmethod
     def it_exists(var: str, index: int) -> bool:
@@ -34,6 +38,9 @@ class ManagerMethods:
                 raise IndexError
             return self.manager.expr
 
+    def get_expr(self):
+        return self.manager.get_expr()
+
     def all_clear(self):
         self.manager.expr = ''
 
@@ -44,9 +51,9 @@ class ManagerMethods:
         self.manager.widget.update_display(value=value)
 
     def evaluate(self, stage: int):
-        self.evaluator.run(expr=self.manager.get_expr(), stage=3)
         try:
-            self.evaluator.run(stage=stage)
+            result = self.evaluator.run(expr=self.manager.get_expr(), stage=stage)
+            return result
         except ValueError:
             return f'Mismatched Parentheses'
         except IndexError:
@@ -55,4 +62,4 @@ class ManagerMethods:
             return f'Division by Zero'
         except Exception as e:
             print(repr(e))
-            return e
+            return None
