@@ -50,9 +50,17 @@ class ManagerMethods:
     def request_update_display(self, value: str):
         self.manager.widget.update_display(value=value)
 
-    def evaluate(self, stage: int):
+    def request_update_preview_display(self, value: str) -> None:
+        self.manager.widget.update_preview_display(value=value)
+
+    def evaluate(self, stage: int, expr=None):
+        final_expr = ''
+        if expr is not None:
+            final_expr = expr
+        else:
+            final_expr = self.manager.get_expr()
         try:
-            result = self.evaluator.run(expr=self.manager.get_expr(), stage=stage)
+            result = self.evaluator.run(expr=final_expr, stage=stage)
             return result
         except ValueError:
             return f'Mismatched Parentheses'

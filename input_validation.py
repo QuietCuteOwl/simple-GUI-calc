@@ -1,12 +1,19 @@
 from utilities import GeneralMethods as gm
 import re
 
+# Maybe make preview mode its own function.When special char is pressed (eg: '=') it gets evaluated as "3+2=",check
+# if char is a special token, if so then dont concatenate it.Then think of what to add to the calculator, maybe root and log.
 
 class RTEval:
     def __init__(self, manager_methods):
         self.mm = manager_methods
         self.operators = '+-*/^'
     def validate(self, char, expr):
+        if len(expr + char) >= 3:
+            if self.is_first_value_valid(expr[0]):
+                if self.is_last_value_valid(expr=expr + char):
+                    if self.is_balanced_parentheses(expr=expr + char):
+                        self.evaluate_preview(char=char)
         if char in self.operators + ')':
             if len(expr) == 0:
                 if not self.is_first_value_valid(char=char):
@@ -138,14 +145,29 @@ class RTEval:
         self.mm.pop_input()
         self.mm.request_update_display(self.mm.get_expr())
 
-    def evaluate(self):
-        result = self.mm.evaluate(stage=3)
+    def evaluate_preview(self, char):
+        result = self.evaluate(preview=True, char=char)
         if result is not None:
-            self.mm.all_clear()
-            self.mm.add_expr(value=result)
-            self.mm.request_update_display(self.mm.get_expr())
+            self.mm.request_update_preview_display(value=result)
+
+    def evaluate(self, preview: bool=False, char=None) -> str|None:
+        if preview:
+            prev_expr = ''
+            try:
+                prev_expr = self.mm.get_expr() + char
+            except TypeError:
+                prev_expr = self.mm.get_expr()
+            result = self.mm.evaluate(expr=prev_expr, stage=3)
+            return result
         else:
-            pass
+            result = self.mm.evaluate(expr=self.mm.get_expr(), stage=3)
+            if result is not None:
+                self.mm.all_clear()
+                self.mm.add_expr(value=result)
+                self.mm.request_update_display(self.mm.get_expr())
+                return None
+            else:
+                return None
 
 def main() -> None:
 

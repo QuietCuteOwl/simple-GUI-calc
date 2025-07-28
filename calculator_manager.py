@@ -3,9 +3,6 @@ from maths_parser import CalculatorCore
 from input_validation import RTEval
 from utilities import ManagerMethods
 
-# To-Do Tomorrow: Dont try to improve parser precision, not important right now. Work on the real-time display then make
-# a git push.
-
 class CentralManager:
     def __init__(self) -> None:
         self.widget: MainWidget = MainWidget()

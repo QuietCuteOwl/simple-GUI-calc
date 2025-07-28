@@ -7,8 +7,8 @@ class MainWidget:
         self.last_clicked: str = ''
         self.input_str: str = ''
         self.root.title('First time using Tkinter')
-        self.entry: tk.Entry = tk.Entry(self.root, width=20, borderwidth=2, font=("Calibri", 18), justify="right")
-        self.test_entry: tk.Entry = tk.Entry(self.root, width=5, borderwidth=1, font=("Calibri", 18), justify="right")
+        self.entry: tk.Entry = tk.Entry(self.root, width=30, borderwidth=2, font=("Calibri", 18), justify="right")
+        self.preview_entry: tk.Entry = tk.Entry(self.root, width=30, borderwidth=1, font=("Calibri", 18), justify="right", state="readonly")
         self._button_callback: Optional[Callable[[str, str], None]] = None
 
         window_width: int = 600
@@ -22,16 +22,16 @@ class MainWidget:
 
         self.root.geometry(f'{window_width}x{window_height}+{x}+{y}')
 
-        self.entry.grid(row=0, column=0, columnspan=4, pady=10, padx=10)
-        self.test_entry.grid(row=0, column=5, pady=10, padx=10)
+        self.entry.grid(row=0, column=0, columnspan=4, pady=2, padx=5)
+        self.preview_entry.grid(row=1, column=0, columnspan=4)
 
         buttons: list[tuple[str, int, int]|tuple[str, int, int, int]] = [
-            ('AC', 1, 0), ('C', 1, 1), ('(', 1, 2), (')', 1, 3),
-            ('7', 2, 0), ('8', 2, 1), ('9', 2, 2), ('/', 2, 3),
-            ('4', 3, 0), ('5', 3, 1), ('6', 3, 2), ('*', 3, 3),
-            ('1', 4, 0), ('2', 4, 1), ('3', 4, 2), ('-', 4, 3),
-            ('0', 5, 0), ('.', 5, 1), ('^', 5, 2), ('+', 5, 3),
-            ('=', 6, 0, 4),
+            ('AC', 2, 0), ('C', 2, 1), ('(', 2, 2), (')', 2, 3),
+            ('7', 3, 0), ('8', 3, 1), ('9', 3, 2), ('/', 3, 3),
+            ('4', 4, 0), ('5', 4, 1), ('6', 4, 2), ('*', 4, 3),
+            ('1', 5, 0), ('2', 5, 1), ('3', 5, 2), ('-', 5, 3),
+            ('0', 6, 0), ('.', 6, 1), ('^', 6, 2), ('+', 6, 3),
+            ('=', 7, 0, 4),
         ]
 
         for btn in buttons:
@@ -61,20 +61,15 @@ class MainWidget:
             self._button_callback(val, self.input_str)
         return None
 
-    def change_display(self, change_value: str, join: bool =False, test: bool = False) -> None:
-        if not test:
-            if not join:
-                self.entry.delete(0, tk.END)
-                self.entry.insert(0, change_value)
-            else:
-                self.entry.insert(tk.END, change_value)
-        else:
-            self.test_entry.delete(0, tk.END)
-            self.test_entry.insert(0, change_value)
-
     def update_display(self, value: str):
         self.entry.delete(0, tk.END)
         self.entry.insert(0, value)
+
+    def update_preview_display(self, value: str) -> None:
+        self.preview_entry.config(state="normal")
+        self.preview_entry.delete(0, tk.END)
+        self.preview_entry.insert(0, value)
+        self.preview_entry.config(state="readonly")
 
     def run(self) -> None:
         self.root.mainloop()
